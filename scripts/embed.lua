@@ -5,40 +5,29 @@
 -- issues in Mac OS X Universal builds.
 --
 
+	local raw_sum = 0
+	local trim_sum = 0
+
 	local function stripfile(fname)
-		local f = io.open(fname)
-		local s = assert(f:read("*a"))
-		f:close()
-
-		-- strip tabs
-		s = s:gsub("[\t]", "")
-
+		dofile("scripts/luasrcdiet/LuaSrcDiet.lua")
+		-- Let LuaSrcDiet do its job
+		local s,l = get_slim_luasrc(fname)
+		-- Now do some cleanup so we can write these out as C strings
 		-- strip any CRs
 		s = s:gsub("[\r]", "")
 
-		-- strip out block comments
-		s = s:gsub("[^\"']%-%-%[%[.-%]%]", "")
-		s = s:gsub("[^\"']%-%-%[=%[.-%]=%]", "")
-		s = s:gsub("[^\"']%-%-%[==%[.-%]==%]", "")
-
-		-- strip out inline comments
-		s = s:gsub("\n%-%-[^\n]*", "\n")
+		-- overall counters
+		raw_sum = raw_sum + l:len()
+		trim_sum = trim_sum + s:len()
 
 		-- escape backslashes
 		s = s:gsub("\\", "\\\\")
-
-		-- strip duplicate line feeds
-		s = s:gsub("\n+", "\n")
-
-		-- strip out leading comments
-		s = s:gsub("^%-%-[^\n]*\n", "")
 
 		-- escape line feeds
 		s = s:gsub("\n", "\\n")
 
 		-- escape double quote marks
 		s = s:gsub("\"", "\\\"")
-
 		return s
 	end
 
@@ -77,6 +66,9 @@
 
 
 	function doembed()
+		raw_sum = 0
+		trim_sum = 0
+		fnames = "const char* builtin_script_fnames[] = {"
 		-- load the manifest of script files
 		scripts = dofile("src/_manifest.lua")
 
@@ -93,9 +85,14 @@
 		for i,fn in ipairs(scripts) do
 			print(fn)
 			local s = stripfile("src/" .. fn)
+			fnames = fnames .. "\n" .. "\t\"@" .. fn .. "\","
 			writefile(out, fn, s)
 		end
 
-		out:write("\t0\n};\n");
+		out:write("\t0\n};\n\n");
+		out:write(fnames);
+		out:write("\n\t0\n};\n");
+
 		out:close()
+		print(string.format("Lua scripts trimmed down to %2.1f%% of original size (%d/%d)", (trim_sum / raw_sum) * 100, trim_sum, raw_sum))
 	end
