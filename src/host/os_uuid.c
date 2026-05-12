@@ -5,6 +5,7 @@
  */
 
 #include "premake.h"
+#include <string.h>
 #if PLATFORM_WINDOWS
 #include <Objbase.h>
 #endif

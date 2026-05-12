@@ -356,27 +356,30 @@ do
         orig_premake_vs2010_vcxproj(prj)
         _G._p = orig_p -- restore in any case
     end
-    -- ... same as above but for VS200x this time
-    local function wrap_remove_pdb_attribute(origfunc)
-        local fct = function(cfg)
-            local old_captured = io.captured -- save io.captured state
-            io.capture() -- this sets io.captured = ""
-            origfunc(cfg)
-            local captured = io.endcapture()
-            assert(captured ~= nil)
-            captured = captured:gsub('%s+ProgramDataBaseFileName=\"[^"]+\"', "")
-            if old_captured ~= nil then
-                io.captured = old_captured .. captured -- restore outer captured state, if any
-            else
-                io.write(captured)
+    -- Premake 4.3 compatibility
+    if premake.vstudio.vc200x ~= nil then
+        -- ... same as above but for VS200x this time
+        local function wrap_remove_pdb_attribute(origfunc)
+            local fct = function(cfg)
+                local old_captured = io.captured -- save io.captured state
+                io.capture() -- this sets io.captured = ""
+                origfunc(cfg)
+                local captured = io.endcapture()
+                assert(captured ~= nil)
+                captured = captured:gsub('%s+ProgramDataBaseFileName=\"[^"]+\"', "")
+                if old_captured ~= nil then
+                    io.captured = old_captured .. captured -- restore outer captured state, if any
+                else
+                    io.write(captured)
+                end
             end
+            return fct
         end
-        return fct
+        premake.vstudio.vc200x.VCLinkerTool = wrap_remove_pdb_attribute(premake.vstudio.vc200x.VCLinkerTool)
+        premake.vstudio.vc200x.toolmap.VCLinkerTool = premake.vstudio.vc200x.VCLinkerTool -- this is important as well
+        premake.vstudio.vc200x.VCCLCompilerTool = wrap_remove_pdb_attribute(premake.vstudio.vc200x.VCCLCompilerTool)
+        premake.vstudio.vc200x.toolmap.VCCLCompilerTool = premake.vstudio.vc200x.VCCLCompilerTool -- this is important as well
     end
-    premake.vstudio.vc200x.VCLinkerTool = wrap_remove_pdb_attribute(premake.vstudio.vc200x.VCLinkerTool)
-    premake.vstudio.vc200x.toolmap.VCLinkerTool = premake.vstudio.vc200x.VCLinkerTool -- this is important as well
-    premake.vstudio.vc200x.VCCLCompilerTool = wrap_remove_pdb_attribute(premake.vstudio.vc200x.VCCLCompilerTool)
-    premake.vstudio.vc200x.toolmap.VCCLCompilerTool = premake.vstudio.vc200x.VCCLCompilerTool -- this is important as well
     -- Override the object directory paths ... don't make them "unique" inside premake4
     local orig_gettarget = premake.gettarget
     premake.gettarget = function(cfg, direction, pathstyle, namestyle, system)
