@@ -92,7 +92,6 @@ static const luaL_Reg string_functions[] = {
 	{ NULL, NULL }
 };
 
-
 /**
  * Initialize the Premake Lua environment.
  */

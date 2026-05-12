@@ -45,7 +45,7 @@ solution "Premake4"
         kind        "ConsoleApp"
         objdir      (int_dir)
         flags       { "No64BitChecks", "ExtraWarnings", "StaticRuntime" }
-        includedirs { "src/host/lua-5.1.4/src" }
+        includedirs { "src/host/lua-5.5.0/src" }
         defines     { "USE_KECCAK" }
 
         files
@@ -58,11 +58,11 @@ solution "Premake4"
         excludes
         {
             "src/premake.lua",
-            "src/host/lua-5.1.4/src/lua.c",
-            "src/host/lua-5.1.4/src/luac.c",
-            "src/host/lua-5.1.4/src/print.c",
-            "src/host/lua-5.1.4/**.lua",
-            "src/host/lua-5.1.4/etc/*.c",
+            "src/host/lua-5.5.0/src/lua.c",
+            "src/host/lua-5.5.0/src/luac.c",
+            "src/host/lua-5.5.0/src/print.c",
+            "src/host/lua-5.5.0/**.lua",
+            "src/host/lua-5.5.0/etc/*.c",
             "src/host/hgtip.h",
             "packages/**",
             "samples/**",

@@ -90,3 +90,13 @@ int premake_init(lua_State* L);
 int premake_locate(lua_State* L, const char* argv0);
 int premake_execute(lua_State* L, int argc, const char** argv);
 
+#if LUA_VERSION_NUM >= 502
+static inline void luaL_register(lua_State *L, const char *libname, const luaL_Reg *l)
+{
+	luaL_newlib(L, l);
+	lua_setglobal(L, libname);
+}
+
+#define luaL_getn(x, y) lua_rawlen(x, y)
+#define lua_open() luaL_newstate()
+#endif
